@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PersonalInfo, Contact } from '../types/cv';
-import { User, Mail, Phone, MapPin, Linkedin, Globe, Github, Twitter } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Plus, Trash2 } from 'lucide-react';
 
 interface PersonalInfoEditorProps {
   personalInfo: PersonalInfo;
@@ -11,6 +11,9 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
   personalInfo,
   onChange,
 }) => {
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+
   const updateField = (field: keyof PersonalInfo, value: string) => {
     onChange({ ...personalInfo, [field]: value });
   };
@@ -28,7 +31,7 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
     });
   };
 
-  const updateLinksField = (field: keyof NonNullable<Contact['links']>, value: string) => {
+  const updateLinksField = (field: string, value: string) => {
     const currentContact = personalInfo.contact || {
       location: '',
       phone: '',
@@ -46,6 +49,38 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
         } 
       }
     });
+  };
+
+  const addNewLink = () => {
+    if (newLinkName.trim() && newLinkUrl.trim()) {
+      updateLinksField(newLinkName.trim(), newLinkUrl.trim());
+      setNewLinkName('');
+      setNewLinkUrl('');
+    }
+  };
+
+  const removeLink = (linkName: string) => {
+    const currentContact = personalInfo.contact || {
+      location: '',
+      phone: '',
+      email: '',
+      links: {},
+    };
+    const currentLinks = currentContact.links || {};
+    const remainingLinks = { ...currentLinks };
+    delete remainingLinks[linkName];
+    
+    onChange({
+      ...personalInfo,
+      contact: { 
+        ...currentContact, 
+        links: remainingLinks 
+      }
+    });
+  };
+
+  const getCurrentLinks = () => {
+    return personalInfo.contact?.links || {};
   };
 
   return (
@@ -150,60 +185,73 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1">
-            <Linkedin className="w-4 h-4" />
-            LinkedIn (Optional)
+        {/* Dynamic Links Section */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Links & Social Media
           </label>
-          <input
-            type="url"
-            value={personalInfo.contact?.links?.LinkedIn || ''}
-            onChange={(e) => updateLinksField('LinkedIn', e.target.value)}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://linkedin.com/in/johndoe"
-          />
-        </div>
+          
+          {/* Existing Links */}
+          {Object.entries(getCurrentLinks()).map(([linkName, linkUrl]) => (
+            <div key={linkName} className="flex gap-2 mb-2">
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={linkName}
+                    disabled
+                    className="w-full p-3 border border-slate-300 rounded-lg bg-slate-50 text-slate-600"
+                  />
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="url"
+                    value={linkUrl || ''}
+                    onChange={(e) => updateLinksField(linkName, e.target.value)}
+                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => removeLink(linkName)}
+                className="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                title="Remove link"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1">
-            <Github className="w-4 h-4" />
-            GitHub (Optional)
-          </label>
-          <input
-            type="url"
-            value={personalInfo.contact?.links?.GitHub || ''}
-            onChange={(e) => updateLinksField('GitHub', e.target.value)}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://github.com/johndoe"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1">
-            <Twitter className="w-4 h-4" />
-            Twitter (Optional)
-          </label>
-          <input
-            type="url"
-            value={personalInfo.contact?.links?.twitter || ''}
-            onChange={(e) => updateLinksField('twitter', e.target.value)}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://twitter.com/johndoe"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-1">
-            <Globe className="w-4 h-4" />
-            Website (Optional)
-          </label>
-          <input
-            type="url"
-            value={personalInfo.contact?.links?.website || ''}
-            onChange={(e) => updateLinksField('website', e.target.value)}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://johndoe.com"
-          />
+          {/* Add New Link */}
+          <div className="flex gap-2 mb-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={newLinkName}
+                onChange={(e) => setNewLinkName(e.target.value)}
+                className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Link name (e.g., LinkedIn, Telegram)"
+              />
+            </div>
+            <div className="flex-1">
+              <input
+                type="url"
+                value={newLinkUrl}
+                onChange={(e) => setNewLinkUrl(e.target.value)}
+                className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://example.com"
+              />
+            </div>
+            <button
+              onClick={addNewLink}
+              disabled={!newLinkName.trim() || !newLinkUrl.trim()}
+              className="p-3 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Add new link"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FileUpload } from './components/FileUpload';
 import { CVEditor } from './components/CVEditor';
 import { CVPreview } from './components/CVPreview';
 import { DownloadPanel } from './components/DownloadPanel';
-import { AuthForm } from './components/AuthForm';
 import { Header } from './components/Header';
 import { useCVData } from './hooks/useCVData';
-import { useAuth } from './hooks/useAuth';
 import { FileText, Settings } from 'lucide-react';
-import { LoginCredentials, RegisterCredentials } from './types/auth';
 
 function App() {
-  const { user, isAuthenticated, isLoading: authLoading, login, register, logout } = useAuth();
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authSubmitLoading, setAuthSubmitLoading] = useState(false);
-
   const {
     cvData,
     setCVData,
@@ -26,47 +19,11 @@ function App() {
     uploadError,
   } = useCVData();
 
-  const handleAuthSubmit = async (credentials: LoginCredentials | RegisterCredentials) => {
-    setAuthSubmitLoading(true);
-    try {
-      const result = authMode === 'login'
-        ? await login(credentials as LoginCredentials)
-        : await register(credentials as RegisterCredentials);
-      return result;
-    } finally {
-      setAuthSubmitLoading(false);
-    }
-  };
-
-  // Show loading spinner while checking authentication
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show authentication form if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <AuthForm
-        mode={authMode}
-        onSubmit={handleAuthSubmit}
-        onModeChange={setAuthMode}
-        isLoading={authSubmitLoading}
-      />
-    );
-  }
-
   // Show file upload screen if no CV is loaded
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <Header user={user!} onLogout={logout} />
+        <Header />
         
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-12">
@@ -74,7 +31,7 @@ function App() {
               <div className="p-3 bg-blue-600 rounded-xl">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold text-slate-800">Welcome back, {user!.firstName}!</h1>
+              <h1 className="text-4xl font-bold text-slate-800">Welcome to CV Customizer!</h1>
             </div>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
               Upload, customize, and generate professional CVs with company branding. 
@@ -134,7 +91,7 @@ function App() {
   // Show main CV editor interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header user={user!} onLogout={logout} />
+      <Header />
       
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -151,17 +108,19 @@ function App() {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Left Column - Editor */}
+          
           <div className="space-y-6">
+
+            <DownloadPanel
+              cvData={cvData}
+              options={generationOptions}
+            />
+
             <CVEditor
               cvData={cvData}
               onDataChange={setCVData}
               generationOptions={generationOptions}
               onOptionsChange={setGenerationOptions}
-            />
-            
-            <DownloadPanel
-              cvData={cvData}
-              options={generationOptions}
             />
           </div>
 

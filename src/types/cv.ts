@@ -3,10 +3,7 @@ export interface Contact {
   phone?: string;
   email?: string;
   links?: {
-    GitHub?: string | null;
-    LinkedIn?: string | null;
-    twitter?: string | null;
-    website?: string | null;
+    [key: string]: string | null | undefined;
   };
 }
 
@@ -56,8 +53,9 @@ export interface Course {
 }
 
 export interface Language {
+  language?: string;
   name?: string;
-  level?: 'Basic' | 'Intermediate' | 'Advanced' | 'Native';
+  level?: 'Basic' | 'Intermediate' | 'Advanced' | 'Native' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Upper Intermediate' | 'Elementary' | 'Beginner';
 }
 
 export interface Reference {
@@ -119,4 +117,7 @@ export type NullableCVData = CVData | null;
 export interface GenerationOptions {
   includePersonalInfo: boolean;
   includePrivateInfo: boolean;
+  downloadOption?: DownloadOption;
 }
+
+export type DownloadOption = 'full' | 'name_only' | 'name_initial';

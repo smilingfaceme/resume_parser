@@ -1,6 +1,6 @@
 import React from 'react';
-import { CVData, GenerationOptions } from '../types/cv';
-import { Download, FileText } from 'lucide-react';
+import { CVData, GenerationOptions, DownloadOption } from '../types/cv';
+import { Download, User, UserCheck, UserX } from 'lucide-react';
 import { generatePDF } from '../utils/pdfGenerator';
 
 interface DownloadPanelProps {
@@ -9,11 +9,7 @@ interface DownloadPanelProps {
 }
 
 export const DownloadPanel: React.FC<DownloadPanelProps> = ({ cvData, options }) => {
-  const generateFilename = (includeFullName: boolean, includePersonal: boolean) => {
-    if (!includePersonal) {
-      return 'CV_Commit_Offshore.pdf';
-    }
-
+  const generateFilename = (downloadOption: DownloadOption) => {
     const firstName = cvData.first_name || '';
     const lastName = cvData.last_name || '';
     
@@ -21,19 +17,38 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({ cvData, options })
       return 'CV_Commit_Offshore.pdf';
     }
 
-    if (includeFullName) {
-      return `${firstName}${lastName}_Commit_Offshore.pdf`;
-    } else {
-      return `${firstName}_${lastName.charAt(0)}_Commit_Offshore.pdf`;
+    switch (downloadOption) {
+      case 'full':
+        return `${firstName}${lastName}_Commit_Offshore.pdf`;
+      case 'name_only':
+        return `${firstName}_${lastName}_Commit_Offshore.pdf`;
+      case 'name_initial':
+        return `${firstName}_${lastName.charAt(0)}_Commit_Offshore.pdf`;
+      default:
+        return 'CV_Commit_Offshore.pdf';
     }
   };
 
-  const handleDownload = async (includeFullName: boolean, includePrivate: boolean) => {
+  const handleDownload = async (downloadOption: DownloadOption) => {
     try {
-      const filename = generateFilename(includeFullName, options.includePersonalInfo);
+      const filename = generateFilename(downloadOption);
+      let includePersonalInfo = false
+      let includePrivateInfo = false
+      
+      if (downloadOption == "full"){
+        includePersonalInfo = true
+        includePrivateInfo = true
+      } else {
+        if (downloadOption == 'name_only' || downloadOption == 'name_initial') {
+          includePersonalInfo = true
+        }
+      }
+
       const downloadOptions = {
         ...options,
-        includePrivateInfo: includePrivate,
+        includePersonalInfo,
+        includePrivateInfo,
+        downloadOption,
       };
       
       await generatePDF(cvData, downloadOptions, filename);
@@ -62,64 +77,67 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({ cvData, options })
       )}
 
       <div className="space-y-4">
+        {/* Option A: Full info (name, contact info) */}
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-4 h-4 text-green-600" />
+            <UserCheck className="w-4 h-4 text-green-600" />
             <span className="font-medium text-green-800">Full Information CV</span>
           </div>
           <p className="text-sm text-green-700 mb-3">
             Download CV with complete personal and contact information
           </p>
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              onClick={() => handleDownload(true, true)}
-              disabled={!hasValidData}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-            >
-              Full Name Version
-            </button>
-            <button
-              onClick={() => handleDownload(false, true)}
-              disabled={!hasValidData}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-            >
-              Short Name Version
-            </button>
-          </div>
+          <button
+            onClick={() => handleDownload('full')}
+            disabled={!hasValidData}
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+          >
+            Download Full CV
+          </button>
         </div>
 
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+        {/* Option B: First name, Last name (no contact info) */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-4 h-4 text-slate-600" />
-            <span className="font-medium text-slate-800">Privacy-Safe CV</span>
+            <User className="w-4 h-4 text-blue-600" />
+            <span className="font-medium text-blue-800">Name Only CV</span>
           </div>
-          <p className="text-sm text-slate-700 mb-3">
-            Download CV without sensitive personal information
+          <p className="text-sm text-blue-700 mb-3">
+            Download CV with first and last name, but no contact information
           </p>
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              onClick={() => handleDownload(true, false)}
-              disabled={!hasValidData}
-              className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-            >
-              Full Name Version (No Private Info)
-            </button>
-            <button
-              onClick={() => handleDownload(false, false)}
-              disabled={!hasValidData}
-              className="bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
-            >
-              Short Name Version (No Private Info)
-            </button>
+          <button
+            onClick={() => handleDownload('name_only')}
+            disabled={!hasValidData}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+          >
+            Download Name Only CV
+          </button>
+        </div>
+
+        {/* Option C: First Name, Last name first letter (no contact info) */}
+        <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <UserX className="w-4 h-4 text-purple-600" />
+            <span className="font-medium text-purple-800">Initial CV</span>
           </div>
+          <p className="text-sm text-purple-700 mb-3">
+            Download CV with first name and last name initial, no contact information
+          </p>
+          <button
+            onClick={() => handleDownload('name_initial')}
+            disabled={!hasValidData}
+            className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm"
+          >
+            Download Initial CV
+          </button>
         </div>
       </div>
 
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
+      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <p className="text-sm text-gray-800">
           <strong>Filename formats:</strong><br />
-          • Full: {generateFilename(true, options.includePersonalInfo)}<br />
-          • Short: {generateFilename(false, options.includePersonalInfo)}
+          • Full: {generateFilename('full')}<br />
+          • Name Only: {generateFilename('name_only')}<br />
+          • Initial: {generateFilename('name_initial')}
         </p>
       </div>
     </div>
