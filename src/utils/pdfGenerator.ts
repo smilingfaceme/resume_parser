@@ -14,6 +14,7 @@ import Linkedin_Icon from '../img/linkedin.png';
 import Address_Icon from '../img/address.png'
 import Email_Icon from '../img/email.png'
 import Phone_Icon from '../img/phone.png'
+import Telegram_Icon from '../img/telegram.png'
 
 // console.log(typeof(User_Icon))
 export const generatePDF = async (
@@ -21,6 +22,7 @@ export const generatePDF = async (
   options: GenerationOptions,
   filename: string
 ) => {
+  console.log(options)
   const pdf = new jsPDF({ format: 'a4', unit: 'mm' });
   const pageWidth = pdf.internal.pageSize.width;
   const pageHeight = pdf.internal.pageSize.height;
@@ -96,13 +98,20 @@ export const generatePDF = async (
   
   pdf.addImage(Logo, 'PNG', pageWidth - 38, 8, 28, 0);
   // Contact info (right side) - only show for 'full' option
-  if (options.includePersonalInfo && options.includePrivateInfo && options.downloadOption === 'full' && cvData.contact) {
+  if (options.includePersonalInfo && options.includePrivateInfo && options.downloadOption == 'full' && cvData.contact) {
     pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
+    let telegramUrl = ""
+    if(cvData.contact.links){
+      telegramUrl = Object.entries(cvData.contact.links).find(
+        ([key]) => key.toLowerCase() === "telegram"
+      )?.[1] || "";
+    }
     let locationlength = 0
     let emaillength = 0
     let phone_length = 0
+    let telegram_length = 0
     if (cvData.contact.location) {
       locationlength = cvData.contact.location.length
     }
@@ -112,7 +121,10 @@ export const generatePDF = async (
     if (cvData.contact.phone) {
       phone_length = cvData.contact.phone.length
     }
-    const maxlength = Math.max(locationlength, emaillength, phone_length)
+    if (telegramUrl) {
+      telegram_length = telegramUrl.length
+    }
+    const maxlength = Math.max(locationlength, emaillength, phone_length, telegram_length)
     let contactY = margin + 15;
     const contactX = pageWidth - margin - maxlength*1.6 - 10;
     
@@ -127,6 +139,11 @@ export const generatePDF = async (
       const safe = cvData.contact.phone.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       pdf.addImage(Phone_Icon, 'PNG', contactX, contactY - 3, 3, 3);
       pdf.text(safe, contactX + 5, contactY);
+    }
+    if (telegramUrl) {
+      contactY += contactSpacing;
+      pdf.addImage(Telegram_Icon, 'PNG', contactX, contactY - 3, 3, 3);
+      pdf.text(telegramUrl, contactX + 5, contactY);
     }
     if (cvData.contact.email) {
       contactY += contactSpacing;
@@ -222,7 +239,8 @@ export const generatePDF = async (
       // const linesofskills = skillTextLines*9/1.618/(leftColumnWidth - 5)
       leftY += (skillTextLines.length - 1)*lineSpacing + smallLineSpacing*0.5
       const barWidth = leftColumnWidth - 5;
-      const skillLevel = skill.level === 'Expert' ? 1.0 : skill.level === 'Advanced' ? 0.9 : skill.level === 'Intermediate' ? 0.7 : 0.5;
+      // Set skillLevel to 1.0 (100%) for all skills
+      const skillLevel = 1.0;
       pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);
       pdf.rect(margin, leftY + 1, barWidth, 1.5, 'F');
       pdf.setFillColor(redColor[0], redColor[1], redColor[2]);
@@ -234,13 +252,19 @@ export const generatePDF = async (
 
   // Links - only show for 'full' option
   if (options.downloadOption === 'full' && cvData.contact?.links) {
-    if(cvData.contact && Object.keys(cvData.contact.links).length > 0){
+    const filteredLinks = Object.fromEntries(
+      Object.entries(cvData.contact.links).filter(
+        ([key]) => key.toLowerCase() !== "telegram"
+      )
+    );
+
+    if(cvData.contact && Object.keys(filteredLinks).length > 0){
       checkLeftPageOverflow(sectionSpacing);
       leftY = addSectionHeader('LINKS', margin, leftY, Linkedin_Icon, true);
     }
      
     // Iterate through all links dynamically
-    Object.entries(cvData.contact.links).forEach(([linkType, linkUrl]) => {
+    Object.entries(filteredLinks).forEach(([linkType, linkUrl]) => {
       if (linkUrl) {
         checkLeftPageOverflow(lineSpacing);
         pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);

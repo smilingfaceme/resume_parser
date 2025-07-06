@@ -27,15 +27,7 @@ interface PageContent {
 export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
   const [pages, setPages] = useState<PageContent[]>([]);
 
-  const getSkillLevel = (level?: string) => {
-    switch (level) {
-      case 'Expert': return 100;
-      case 'Advanced': return 90;
-      case 'Intermediate': return 70;
-      case 'Beginner': return 50;
-      default: return 70;
-    }
-  };
+  const getSkillLevel = () => 100;
 
   const getLanguageLevel = (level?: string) => {
     if (level === 'C2' || level === 'Native') return 100;
@@ -124,7 +116,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
             {/* Company Logo */}
             <img src={Logo} alt="Company Logo" className="w-24 object-contain mb-3 bg-white rounded" />
             
-            {options.includePersonalInfo && options.includePrivateInfo && cvData.contact && (
+            {cvData.contact && (
               <div className="text-sm text-black space-y-1 text-right">
                 {cvData.contact.location && (
                   <div className="flex items-center justify-start gap-2">
@@ -175,7 +167,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
                 <div className="text-sm font-medium text-black mb-1">
                   {skill.skills.join(', ')}
                 </div>
-                <ProgressBar percentage={getSkillLevel(skill.level || 'Intermediate')} />
+                <ProgressBar percentage={getSkillLevel()} />
               </div>
             ))}
           </div>

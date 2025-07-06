@@ -1,23 +1,18 @@
 import React from 'react';
-import { CVData, GenerationOptions, PersonalInfo, EmploymentHistory, Education, Skill } from '../types/cv';
+import { CVData, PersonalInfo, EmploymentHistory, Education, Skill } from '../types/cv';
 import { PersonalInfoEditor } from './PersonalInfoEditor';
 import { ExperienceEditor } from './ExperienceEditor';
 import { EducationEditor } from './EducationEditor';
 import { SkillsEditor } from './SkillsEditor';
-import { GenerationOptionsPanel } from './GenerationOptionsPanel';
 
 interface CVEditorProps {
   cvData: CVData;
   onDataChange: (data: CVData) => void;
-  generationOptions: GenerationOptions;
-  onOptionsChange: (options: GenerationOptions) => void;
 }
 
 export const CVEditor: React.FC<CVEditorProps> = ({
   cvData,
   onDataChange,
-  generationOptions,
-  onOptionsChange,
 }) => {
   const updatePersonalInfo = (personalInfo: PersonalInfo) => {
     onDataChange({ 
@@ -71,11 +66,6 @@ export const CVEditor: React.FC<CVEditorProps> = ({
         </div>
 
         <div className="p-6 space-y-8">
-          <GenerationOptionsPanel
-            options={generationOptions}
-            onChange={onOptionsChange}
-          />
-
           <PersonalInfoEditor
             personalInfo={personalInfo}
             onChange={updatePersonalInfo}

@@ -12,7 +12,6 @@ function App() {
     cvData,
     setCVData,
     generationOptions,
-    setGenerationOptions,
     isLoaded,
     loadCVFromFile,
     uploadLoading,
@@ -23,7 +22,7 @@ function App() {
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <Header />
+        <Header showNewCVButton={false} />
         
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-12">
@@ -91,7 +90,7 @@ function App() {
   // Show main CV editor interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Header />
+      <Header showNewCVButton={true} />
       
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -119,8 +118,6 @@ function App() {
             <CVEditor
               cvData={cvData}
               onDataChange={setCVData}
-              generationOptions={generationOptions}
-              onOptionsChange={setGenerationOptions}
             />
           </div>
 
