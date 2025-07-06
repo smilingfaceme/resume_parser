@@ -271,7 +271,7 @@ export const generatePDF = async (
       pdf.setFontSize(10);
       const langLines = pdf.splitTextToSize(lang.toUpperCase(), leftColumnWidth - 5);
       pdf.text(langLines, margin, leftY, { maxWidth: leftColumnWidth - 5 });
-      const barWidth = leftColumnWidth - 10;
+      const barWidth = leftColumnWidth - 5;
       // Handle CEFR levels (A1, A2, B1, B2, C1, C2) and other levels
       let levelValue = 0.5; // Default
       if (level === 'C2' || level === 'Native') levelValue = 1.0;

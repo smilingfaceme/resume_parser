@@ -97,7 +97,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
                   </>
                 )}
                 <p className="text-base font-bold text-black">
-                  {(cvData.title || '')}
+                  {(() => {
+                    const safeTitle_mini = (cvData.title || '').replace(/●/g, '|');
+                    const safetitle = safeTitle_mini.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return safetitle;
+                  })()}
                 </p>
               </>
             ) : (
@@ -106,7 +110,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
                   PROFESSIONAL CV
                 </h1>
                 <p className="text-base font-bold text-black">
-                  {(cvData.title || '')}
+                  {(() => {
+                    const safeTitle_mini = (cvData.title || '').replace(/●/g, '|');
+                    const safetitle = safeTitle_mini.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    return safetitle;
+                  })()}
                 </p>
               </>
             )}
