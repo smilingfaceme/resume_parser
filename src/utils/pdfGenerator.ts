@@ -77,15 +77,11 @@ export const generatePDF = async (
     // Handle different name display options
     if (options.downloadOption === 'name_initial') {
       // Show first name and last name initial
-      pdf.text(firstName.toUpperCase(), margin, yPos);
-      yPos += 11;
-      pdf.text(lastName.charAt(0).toUpperCase(), margin, yPos);
+      pdf.text(`${firstName.toUpperCase()} ${lastName.charAt(0).toUpperCase()}`, margin, yPos);
       yPos += headerSpacing;
     } else {
       // Show full name (both full and name_only options)
-      pdf.text(firstName.toUpperCase(), margin, yPos);
-      yPos += 11;
-      pdf.text(lastName.toUpperCase(), margin, yPos);
+      pdf.text(`${firstName.toUpperCase()} ${lastName.toUpperCase()}`, margin, yPos);
       yPos += headerSpacing;
     }
   } else {
@@ -95,6 +91,7 @@ export const generatePDF = async (
     pdf.text('PROFESSIONAL CV', margin, yPos);
     yPos += headerSpacing + 4;
   }
+  let contactY = yPos
 
   pdf.setFontSize(12);
   pdf.setFont('Lato-Regular', 'normal');
@@ -113,6 +110,49 @@ export const generatePDF = async (
   // Header Logo Image
   pdf.addImage(Logo, 'PNG', pageWidth - 38, 8, 20, 0);
   
+  const optimizeTwoColumnWidths = (
+    contact_info: { contact: string; image: string; width: number }[]
+  ): [{ contact: string; image: string; width: number }[], number, number, number] => {
+    // Step 1: Sort items descending by width
+    const sorted = [...contact_info].sort((a, b) => a.width - b.width);
+
+    let solo: typeof contact_info[0] | null = null;
+    if (sorted.length % 2 === 1) {
+      solo = sorted.pop()!; // Remove the longest (last after sort ascending)
+    }
+    const result: typeof contact_info = [];
+    let left = 0;
+    let right = sorted.length - 1;
+    let maxwidthleft = 0
+    let maxwidthright = 0
+    let space = 10
+    while (left <= right) {
+      if (left === right) {
+        // Odd number, push the last single item
+        result.push(sorted[left]);
+        break;
+      }
+      // Pair the widest with narrowest to balance row width
+      result.push(sorted[left]);
+      result.push(sorted[right]);
+      if (maxwidthleft < sorted[left].width){
+        maxwidthleft = sorted[left].width
+      }
+      if (maxwidthright < sorted[right].width){
+        maxwidthright = sorted[right].width
+      }
+      left++;
+      right--;
+    }
+    if(solo){
+      result.push(solo)
+      if (solo.width > maxwidthleft + maxwidthright + 10) {
+        space = solo.width - (maxwidthleft + maxwidthright)
+      }
+    }
+    return [result, maxwidthleft, maxwidthright, space];
+  }
+
   // Contact info (right side) - only show for 'full' option
   if (options.includePersonalInfo && options.includePrivateInfo && options.downloadOption == 'full' && cvData.contact) {
     pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
@@ -124,50 +164,70 @@ export const generatePDF = async (
         ([key]) => key.toLowerCase() === "telegram"
       )?.[1] || "";
     }
-    let locationlength = 0
-    let emaillength = 0
-    let phone_length = 0
-    let telegram_length = 0
+    let contact_info: { contact: string; image: string; width: number }[] = [];
     if (cvData.contact.location) {
-      locationlength = cvData.contact.location.length
+      const safe = cvData.contact.location.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      contact_info = [
+        ...contact_info,
+        {
+          contact: safe,
+          image : Address_Icon,
+          width : pdf.getTextWidth(cvData.contact.location)
+        }
+      ]
     }
     if (cvData.contact.email) {
-      emaillength = cvData.contact.email.length
+      const safe = cvData.contact.email.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      contact_info = [
+        ...contact_info,
+        {
+          contact: safe,
+          image : Email_Icon,
+          width : pdf.getTextWidth(cvData.contact.email)
+        }
+      ]
     }
     if (cvData.contact.phone) {
-      phone_length = cvData.contact.phone.length
+      const safe = cvData.contact.phone.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      contact_info = [
+        ...contact_info,
+        {
+          contact: safe,
+          image : Phone_Icon,
+          width : pdf.getTextWidth(cvData.contact.phone)
+        }
+      ]
     }
     if (telegramUrl) {
-      telegram_length = telegramUrl.length
-    }
-    const maxlength = Math.max(locationlength, emaillength, phone_length, telegram_length)
-    let contactY = margin;
-    let contactX = pageWidth - margin - maxlength*1.6;
-    if (contactX > pageWidth*0.55){
-      contactX = pageWidth*0.55
+      contact_info = [
+        ...contact_info,
+        {
+          contact: telegramUrl,
+          image : Telegram_Icon,
+          width : pdf.getTextWidth(telegramUrl)
+        }
+      ]
     }
     
-    if (cvData.contact.location) {
-      contactY += contactSpacing;
-      const safe = cvData.contact.location.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      pdf.addImage(Address_Icon, 'PNG', contactX, contactY - 3.5, 4, 4);
-      pdf.text(safe, contactX + 6, contactY);
+    const [contact_info_sorted, maxwidthleft, maxwidthright, space]: [{ contact: string; image: string; width: number }[], number, number, number] = optimizeTwoColumnWidths(contact_info);
+    
+    contactY = contactY - contactSpacing
+    let contactX = pageWidth*0.55;
+    if ( contactX < pageWidth - margin - space - maxwidthright - maxwidthleft){
+      contactX = pageWidth - margin - space - maxwidthright - maxwidthleft
     }
-    if (cvData.contact.phone) {
+    for (let i = 0; i < contact_info_sorted.length; i += 2) {
       contactY += contactSpacing;
-      const safe = cvData.contact.phone.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      pdf.addImage(Phone_Icon, 'PNG', contactX, contactY - 3.5, 4, 4);
-      pdf.text(safe, contactX + 6, contactY);
-    }
-    if (telegramUrl) {
-      contactY += contactSpacing;
-      pdf.addImage(Telegram_Icon, 'PNG', contactX, contactY - 3.5, 4, 4);
-      pdf.text(telegramUrl, contactX + 6, contactY);
-    }
-    if (cvData.contact.email) {
-      contactY += contactSpacing;
-      pdf.addImage(Email_Icon, 'PNG', contactX, contactY - 3.5, 4, 4);
-      pdf.text(cvData.contact.email, contactX + 6, contactY);
+      const first = contact_info_sorted[i];
+      const second = contact_info_sorted[i + 1] ?? null
+      
+      pdf.addImage(first.image, 'PNG', contactX, contactY - 3.5, 4, 4);
+      pdf.text(first.contact, contactX + 6, contactY);
+
+      if (second) {
+        pdf.addImage(second.image, 'PNG', contactX + space + maxwidthleft, contactY - 3.5, 4, 4);
+        pdf.text(second.contact, contactX + space + 6 + maxwidthleft, contactY);
+      }
     }
     contactY += 3
     if (contactY > yPos){
@@ -435,6 +495,31 @@ export const generatePDF = async (
       pdf.line(pageWidth*leftColumnRatio, margin - 3, pageWidth*leftColumnRatio, pageHeight - margin);
     }
   };
+
+  const drawStyledText = (
+    pdf: jsPDF, 
+    segments: { text: string; font: string; style: string }[], 
+    x: number, 
+    y: number, 
+    margin: number, 
+    maxWidth: number, 
+    lineHeight: number
+  ) =>{
+    segments.forEach(segment => {
+      pdf.setFont(segment.font, segment.style);
+      const words = segment.text.split(" ");
+      words.forEach(word => {
+        const wordWidth = pdf.getTextWidth(word + " ");
+        if (x + wordWidth > margin + maxWidth) {
+          x = margin;
+          y += lineHeight;
+        }
+        pdf.text(word + " ", x, y);
+        x += wordWidth;
+      });
+    });
+    return { x, y };
+  }
   // Work Experience
   if (Array.isArray(cvData.experience) && cvData.experience.length > 0) {
     checkRightPageOverflow(sectionSpacing);
@@ -542,8 +627,7 @@ export const generatePDF = async (
       rightY += descLines.length * lineSpacing + smallLineSpacing;
     });
     rightY += lineSpacing + smallLineSpacing;
-  }
-
+  } 
   // Skills
   if (Array.isArray(cvData.skills) && cvData.skills.length > 0) {
     checkRightPageOverflow(sectionSpacing);
@@ -555,18 +639,18 @@ export const generatePDF = async (
       pdf.setFont('Lato-Light', 'normal');
       pdf.setFontSize(10);
       const skilllineheight = pdf.getLineHeight()/2.835
-      const skillwidth = pdf.getTextWidth(skill.skills.join(", ").trim())
+      const skilltext = [
+        { text: `• `, font: 'Lato-Light', style: 'normal' },
+        { text: `${skill.category}: `, font: 'Lato-Bold', style: "bold" },
+        { text: `${skill.skills.join(', ').trim()}`, font: 'Lato-Light', style: 'normal' }
+      ];
+      drawStyledText(pdf, skilltext, rightColumnStart, rightY, rightColumnStart, rightColumnWidth, skilllineheight)
+      const skillwidth = pdf.getTextWidth(`• ${skill.category}: ${skill.skills.join(', ').trim()}`)
       const skillLines = Math.floor((skillwidth + rightColumnWidth - 1) / rightColumnWidth)
       checkRightPageOverflow(lineSpacing * (skillLines + 1));
-      pdf.text(skill.skills.join(", "), rightColumnStart, rightY, { maxWidth: rightColumnWidth });
-      rightY += skilllineheight * (skillLines - 1)
-    
-      const skillLevel = 0.8;
-      pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);
-      pdf.rect(rightColumnStart, rightY + 2, rightColumnWidth, 1, 'F');
-      pdf.setFillColor(redColor[0], redColor[1], redColor[2]);
-      pdf.rect(rightColumnStart, rightY + 2, rightColumnWidth * skillLevel, 1, 'F');
-      rightY += skilllineheight*2;
+      // pdf.text(skilltext, rightColumnStart, rightY, { maxWidth: rightColumnWidth });
+      rightY += skilllineheight * (skillLines) + skillLines/2
+
     });
     pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
     pdf.setFont('Lato-Light', 'normal');
