@@ -302,7 +302,7 @@ export const generatePDF = async (
       // Draw separator line on new page
       pdf.setDrawColor(redColor[0], redColor[1], redColor[2]);
       pdf.setLineWidth(0.5);
-      pdf.line(pageWidth*leftColumnRatio, margin - 3, pageWidth*leftColumnRatio, pageHeight - margin);
+      pdf.line(pageWidth*leftColumnRatio, margin - 3, pageWidth*leftColumnRatio, pageHeight - margin +3);
     }
   };
 
@@ -492,7 +492,7 @@ export const generatePDF = async (
       // Draw separator line on new page
       pdf.setDrawColor(redColor[0], redColor[1], redColor[2]);
       pdf.setLineWidth(0.5);
-      pdf.line(pageWidth*leftColumnRatio, margin - 3, pageWidth*leftColumnRatio, pageHeight - margin);
+      pdf.line(pageWidth*leftColumnRatio, margin - 3, pageWidth*leftColumnRatio, pageHeight - margin + 3);
     }
   };
 
@@ -602,14 +602,15 @@ export const generatePDF = async (
       pdf.setFontSize(10);
       pdf.setFont('Lato-Bold', 'bold');
       const dateRange = processDateRange(project.start_date, project.end_date)
-      const projectNameLines = pdf.splitTextToSize((project.project_name || '').toUpperCase(), rightColumnWidth - dateRange.length*1.6);
+      const projectNameWidth = pdf.getTextWidth((project.project_name || ''))
+      const projectLines = Math.floor((projectNameWidth + pageWidth - margin - dateRange.length*1.6 - rightColumnStart - 1 ) / (pageWidth - margin - dateRange.length*1.6 - rightColumnStart));
       pdf.text((project.project_name || ''), rightColumnStart, rightY, { maxWidth: rightColumnWidth - dateRange.length*1.6 });
       pdf.setFontSize(10);
       pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
       pdf.setFont('Lato-Light', 'normal');
       pdf.text(dateRange, pageWidth - margin - dateRange.length*1.6, rightY);
-      console.log(projectNameLines.length)
-      rightY += projectNameLines.length * lineSpacing + 1;
+      console.log(projectLines)
+      rightY += projectLines * lineSpacing + 1;
       pdf.setFontSize(10);
       pdf.setFont('Lato-Light', 'normal');
       if (project.organization) {
@@ -619,12 +620,14 @@ export const generatePDF = async (
         rightY += orgLines.length * lineSpacing + 2;
       }
      
-      if (project.description) blockHeight = pdf.splitTextToSize(project.description, rightColumnWidth - 5).length * lineSpacing;
-      checkRightPageOverflow(blockHeight);
-      const descLines = pdf.splitTextToSize(project.description || '', rightColumnWidth - 5);
-      pdf.setFontSize(10);
-      pdf.text(project.description || '', rightColumnStart, rightY, { maxWidth: rightColumnWidth - 5 });
-      rightY += descLines.length * lineSpacing + smallLineSpacing;
+      if (project.description) {
+        blockHeight = pdf.splitTextToSize(project.description, rightColumnWidth - 5).length * lineSpacing;
+        checkRightPageOverflow(blockHeight);
+        const descLines = pdf.splitTextToSize(project.description || '', rightColumnWidth - 5);
+        pdf.setFontSize(10);
+        pdf.text(project.description || '', rightColumnStart, rightY, { maxWidth: rightColumnWidth - 5 });
+        rightY += descLines.length * lineSpacing + smallLineSpacing;
+        }
     });
     rightY += lineSpacing + smallLineSpacing;
   } 
@@ -644,52 +647,15 @@ export const generatePDF = async (
         { text: `${skill.category}: `, font: 'Lato-Bold', style: "bold" },
         { text: `${skill.skills.join(', ').trim()}`, font: 'Lato-Light', style: 'normal' }
       ];
-      drawStyledText(pdf, skilltext, rightColumnStart, rightY, rightColumnStart, rightColumnWidth, skilllineheight)
       const skillwidth = pdf.getTextWidth(`• ${skill.category}: ${skill.skills.join(', ').trim()}`)
       const skillLines = Math.floor((skillwidth + rightColumnWidth - 1) / rightColumnWidth)
-      checkRightPageOverflow(lineSpacing * (skillLines + 1));
-      // pdf.text(skilltext, rightColumnStart, rightY, { maxWidth: rightColumnWidth });
+      checkRightPageOverflow(lineSpacing * skillLines);
+      drawStyledText(pdf, skilltext, rightColumnStart, rightY, rightColumnStart, rightColumnWidth, skilllineheight)
       rightY += skilllineheight * (skillLines) + skillLines/2
-
     });
     pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
     pdf.setFont('Lato-Light', 'normal');
     pdf.setFontSize(10);
-    // for (let i = 0; i < skill_total.length; i += 2) {
-    //   const first = skill_total[i];
-    //   const second = skill_total[i + 1] ?? null; // handle case where second might not exist
-
-    //   const skillcolumnwidth = (rightColumnWidth - 10)/2
-    //   let skillline = 0
-    //   // First skill
-    //   const firstwidth = pdf.getTextWidth(first.trim())
-    //   const firstLines = Math.floor((firstwidth + skillcolumnwidth - 1) / skillcolumnwidth)
-    //   checkRightPageOverflow(lineSpacing * (firstLines + 1));
-    //   pdf.text(first, rightColumnStart, rightY, { maxWidth: skillcolumnwidth });
-    //   skillline = firstLines
-    //   const skillLevel = 0.8;
-    //   pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);
-    //   pdf.rect(rightColumnStart, rightY + 2, skillcolumnwidth, 1, 'F');
-    //   pdf.setFillColor(redColor[0], redColor[1], redColor[2]);
-    //   pdf.rect(rightColumnStart, rightY + 2, skillcolumnwidth * skillLevel, 1, 'F');
-
-    //   if(second){
-    //     const secondwidth = pdf.getTextWidth(second.trim())
-    //     const secondLines = Math.floor((secondwidth + skillcolumnwidth - 1) / skillcolumnwidth)
-    //     checkRightPageOverflow(lineSpacing * (secondLines + 1));
-    //     pdf.text(second, rightColumnStart + skillcolumnwidth + 10, rightY, { maxWidth: skillcolumnwidth });
-
-    //     pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);
-    //     pdf.rect(rightColumnStart + skillcolumnwidth + 10, rightY + 2, skillcolumnwidth, 1, 'F');
-    //     pdf.setFillColor(redColor[0], redColor[1], redColor[2]);
-    //     pdf.rect(rightColumnStart + skillcolumnwidth + 10, rightY + 2, skillcolumnwidth * skillLevel, 1, 'F');
-
-    //     skillline = Math.max(firstLines, secondLines)
-    //   }
-
-    //   rightY += lineSpacing*skillline + smallLineSpacing*2;
-    //   // console.log("Pair:", first, second);
-    // }
     rightY += sectionSpacing / 2;
   }
 
