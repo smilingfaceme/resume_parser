@@ -411,7 +411,7 @@ export const generatePDF = async (
       checkLeftPageOverflow(lineSpacing * 2);
       pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);
       pdf.setFontSize(10);
-      pdf.setFont('Lato-Light', 'normal');
+      pdf.setFont('Lato-Regular', 'normal');
       const langLines = pdf.splitTextToSize(lang, leftColumnWidth - 5);
       pdf.text(langLines, margin, leftY, { maxWidth: leftColumnWidth - 5 });
       const barWidth = leftColumnWidth - 5;
