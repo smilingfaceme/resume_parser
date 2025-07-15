@@ -127,11 +127,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
   
   const getLanguageLevel = (level?: string) => {
     if (level === 'C2' || level === 'Native') return 100;
-    else if (level === 'C1' || level === 'Advanced') return 90;
-    else if (level === 'B2' || level === 'Upper Intermediate') return 80;
-    else if (level === 'B1' || level === 'Intermediate') return 70;
-    else if (level === 'A2' || level === 'Elementary') return 60;
-    else if (level === 'A1' || level === 'Beginner') return 50;
+    else if (level === 'C1' || level === 'Advanced') return 100;
+    else if (level === 'B2' || level === 'Upper Intermediate') return 75;
+    else if (level === 'B1' || level === 'Intermediate') return 60;
+    else if (level === 'A2' || level === 'Elementary') return 50;
+    else if (level === 'A1' || level === 'Beginner') return 25;
     else return 70;
   };
 
