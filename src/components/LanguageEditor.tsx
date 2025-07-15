@@ -1,6 +1,6 @@
 import React from 'react';
 import { Language } from '../types/cv';
-import { Plus, Trash2 } from 'lucide-react';
+import { Languages, Plus, Trash2 } from 'lucide-react';
 
 interface LanguageEditorProps {
   languages: Language[];
@@ -34,6 +34,7 @@ export const LanguageEditor: React.FC<LanguageEditorProps> = ({ languages, onCha
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-slate-800 flex items-center gap-2">
           {/* You can use an icon here if desired */}
+          <Languages className="w-5 h-5" />
           Languages
         </h3>
         <button
