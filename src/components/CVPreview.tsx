@@ -130,7 +130,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
     else if (level === 'C1' || level === 'Advanced') return 100;
     else if (level === 'B2' || level === 'Upper Intermediate') return 75;
     else if (level === 'B1' || level === 'Intermediate') return 60;
-    else if (level === 'A2' || level === 'Elementary') return 50;
+    else if (level === 'A2' || level === 'Elementary') return 45;
     else if (level === 'A1' || level === 'Beginner') return 25;
     else return 70;
   };
@@ -322,12 +322,17 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
           <SectionHeader icon={<img src={BookOpenIcon} alt="Book Open" className="w-4 h-4" />} title="CERTIFICATIONS" isLeftColumn />
           <div className="space-y-2">
             {cvData.certifications.map((cert, index) => (
-              <div key={index} className="flex text-sm text-black justify-between items-start">
-                <span className="text-red-600 font-bold mr-3 ml-1">•</span>
-                <p className="flex-1 pr-3 leading-relaxed">
+              <div>
+                <div key={index} className="flex text-sm text-black items-start">
+                  <span className="text-red-600 font-bold mr-3 ml-1">•</span>
+                  <div>
+                    <p className="text-sm text-gray-600">{cert.issuer}</p>
+                    <p className="text-sm text-gray-600">{cert.date}</p>
+                  </div>
+                </div>              
+                <p className="flex-1 ml-5 text-sm text-red-600 font-medium">
                   {(cert.name || '').toUpperCase()}
                 </p>
-                {cert.issuer && <p className="text-sm text-gray-600">{cert.issuer}</p>}
               </div>
             ))}
           </div>

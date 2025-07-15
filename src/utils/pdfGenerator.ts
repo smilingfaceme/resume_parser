@@ -421,7 +421,7 @@ export const generatePDF = async (
       else if (level === 'C1' || level === 'Advanced') levelValue = 1.0;
       else if (level === 'B2' || level === 'Upper Intermediate') levelValue = 0.75;
       else if (level === 'B1' || level === 'Intermediate') levelValue = 0.6;
-      else if (level === 'A2' || level === 'Elementary') levelValue = 0.5;
+      else if (level === 'A2' || level === 'Elementary') levelValue = 0.45;
       else if (level === 'A1' || level === 'Beginner') levelValue = 0.25;
       
       pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);

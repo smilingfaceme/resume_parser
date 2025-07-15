@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { CVData, PersonalInfo, EmploymentHistory, Education, Skill } from '../types/cv';
+import { CVData, PersonalInfo, EmploymentHistory, Education, Skill, Language } from '../types/cv';
 import { PersonalInfoEditor } from './PersonalInfoEditor';
 import { ExperienceEditor } from './ExperienceEditor';
 import { EducationEditor } from './EducationEditor';
 import { SkillsEditor } from './SkillsEditor';
+import { LanguageEditor } from './LanguageEditor';
 
 interface CVEditorProps {
   cvData: CVData;
@@ -20,6 +21,7 @@ export const CVEditor: React.FC<CVEditorProps> = ({
     experience: false,
     education: false,
     skills: false,
+    languages: false,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -54,6 +56,10 @@ export const CVEditor: React.FC<CVEditorProps> = ({
     onDataChange({ ...cvData, skills: skills });
   };
 
+  const updateLanguages = (languages: Language[]) => {
+    onDataChange({ ...cvData, languages_spoken: languages });
+  };
+
   // Create PersonalInfo object from CVData with safe defaults
   const personalInfo: PersonalInfo = {
     first_name: cvData.first_name || '',
@@ -67,6 +73,9 @@ export const CVEditor: React.FC<CVEditorProps> = ({
       links: {},
     },
   };
+
+  // Prepare languages array from cvData.languages_spoken (filter out strings)
+  const languages: Language[] = (cvData.languages_spoken || []).filter(l => typeof l === 'object') as Language[];
 
 
   return (
@@ -153,6 +162,26 @@ export const CVEditor: React.FC<CVEditorProps> = ({
                 <SkillsEditor
                   skills={cvData.skills||[]}
                   onChange={updateSkills}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Languages Section */}
+          <div>
+            <button
+              type="button"
+              className="flex items-center w-full justify-between px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 transition mb-2"
+              onClick={() => toggleSection('languages')}
+            >
+              <span className="font-semibold text-slate-700">Languages</span>
+              <span className="text-lg">{openSections.languages ? '▲' : '▼'}</span>
+            </button>
+            {openSections.languages && (
+              <div className="pt-2">
+                <LanguageEditor
+                  languages={languages}
+                  onChange={updateLanguages}
                 />
               </div>
             )}
