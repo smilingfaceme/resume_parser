@@ -206,7 +206,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
             <img src={Logo} alt="Company Logo" className="w-24 object-contain mb-3 bg-white rounded" />          
             {cvData.contact && (
               <div className="text-sm text-black space-y-1 text-right">
-                { contact_info_sorted.reduce<{ contact: string; image: string; width: number; }[][]>((acc, item, index, arr) => {
+                { contact_info_sorted.reduce<{ contact: string; image: string; width: number; }[][]>((acc, _, index, arr) => {
                           // Group items in pairs (two items per row)
                           if (index % 2 === 0) {
                             acc.push(arr.slice(index, index + 2)); // slice the next two items

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { CVData, PersonalInfo, EmploymentHistory, Education, Skill, Language } from '../types/cv';
+import { CVData, PersonalInfo, EmploymentHistory, Education, Skill, Language, Project, Certification } from '../types/cv';
 import { PersonalInfoEditor } from './PersonalInfoEditor';
 import { ExperienceEditor } from './ExperienceEditor';
 import { EducationEditor } from './EducationEditor';
 import { SkillsEditor } from './SkillsEditor';
 import { LanguageEditor } from './LanguageEditor';
+import { ProjectEditor } from './ProjectEditor';
+import { CertificationEditor } from './CertificationEditor';
 
 interface CVEditorProps {
   cvData: CVData;
@@ -22,6 +24,8 @@ export const CVEditor: React.FC<CVEditorProps> = ({
     education: false,
     skills: false,
     languages: false,
+    projects: false,
+    certifications: false,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -58,6 +62,14 @@ export const CVEditor: React.FC<CVEditorProps> = ({
 
   const updateLanguages = (languages: Language[]) => {
     onDataChange({ ...cvData, languages_spoken: languages });
+  };
+
+  const updateProjects = (projects: Project[]) => {
+    onDataChange({ ...cvData, projects });
+  };
+
+  const updateCertifications = (certifications: Certification[]) => {
+    onDataChange({ ...cvData, certifications });
   };
 
   // Create PersonalInfo object from CVData with safe defaults
@@ -182,6 +194,46 @@ export const CVEditor: React.FC<CVEditorProps> = ({
                 <LanguageEditor
                   languages={languages}
                   onChange={updateLanguages}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Projects Section */}
+          <div>
+            <button
+              type="button"
+              className="flex items-center w-full justify-between px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 transition mb-2"
+              onClick={() => toggleSection('projects')}
+            >
+              <span className="font-semibold text-slate-700">Projects</span>
+              <span className="text-lg">{openSections.projects ? '▲' : '▼'}</span>
+            </button>
+            {openSections.projects && (
+              <div className="pt-2">
+                <ProjectEditor
+                  projects={cvData.projects || []}
+                  onChange={updateProjects}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Certifications Section */}
+          <div>
+            <button
+              type="button"
+              className="flex items-center w-full justify-between px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 transition mb-2"
+              onClick={() => toggleSection('certifications')}
+            >
+              <span className="font-semibold text-slate-700">Certifications</span>
+              <span className="text-lg">{openSections.certifications ? '▲' : '▼'}</span>
+            </button>
+            {openSections.certifications && (
+              <div className="pt-2">
+                <CertificationEditor
+                  certifications={cvData.certifications || []}
+                  onChange={updateCertifications}
                 />
               </div>
             )}
