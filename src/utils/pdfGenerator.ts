@@ -378,10 +378,17 @@ export const generatePDF = async (
       const skillLines = skillwidth.length//Math.floor((skillwidth + rightColumnWidth - 1) / rightColumnWidth)
       checkLeftPageOverflow(lineSpacing * skillLines);
       drawStyledText(pdf, skilltext, margin, leftColumnWidth, skilllineheight)
+      const level = skill.level || 'Intermediate';
+      let levelValue = 0.5; // Default
+      if (level === 'Expert') levelValue = 1.0;
+      else if (level === 'Advanced') levelValue = 0.75;
+      else if (level === 'Intermediate') levelValue = 0.5;
+      else if (level === 'Beginner') levelValue = 0.25;
+
       pdf.setFillColor(grayColor[0], grayColor[1], grayColor[2]);
       pdf.rect(margin, leftY-skilllineheight+2, leftColumnWidth, 1, 'F');
       pdf.setFillColor(redColor[0], redColor[1], redColor[2]);
-      pdf.rect(margin, leftY-skilllineheight+2, leftColumnWidth * 0.8, 1, 'F');
+      pdf.rect(margin, leftY-skilllineheight+2, leftColumnWidth * levelValue, 1, 'F');
       leftY += skillLines + 2
     });
     pdf.setTextColor(blackColor[0], blackColor[1], blackColor[2]);

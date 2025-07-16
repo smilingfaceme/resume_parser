@@ -137,6 +137,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
     else return 70;
   };
 
+  const getSkillLevel = (level?: string) => {
+    if (level === 'Expert') return 100;
+    else if (level === 'Advanced') return 75;
+    else if (level === 'Intermediate') return 50;
+    else if (level === 'Beginner') return 25;
+    else return 50
+  };
   const ProgressBar = ({ percentage }: { percentage: number }) => (
     <div className="w-full bg-gray-200 rounded-full h-1.5">
       <div 
@@ -266,14 +273,17 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, options }) => {
         <div>
           <SectionHeader icon={<img src={AwardIcon} alt="Award" className="w-4 h-4" />} title="SKILLS" />
           <div className="space-y-2 ml-6">
-            {cvData.skills.map((skill, index) => (
+            {cvData.skills.map((skill, index) => {
+              const level = skill.level || 'Intermediate';
+              return (
               <div key={index}>
                 <div className="text-sm text-black mb-1">
                   <b>{skill.category}: </b> {skill.skills.join(', ')}
                 </div>
-                <ProgressBar percentage={getLanguageLevel("B2")} />
+                <ProgressBar percentage={getSkillLevel(level)} />
               </div>
-            ))}
+            )}
+            )}
           </div>
         </div>
       )}
